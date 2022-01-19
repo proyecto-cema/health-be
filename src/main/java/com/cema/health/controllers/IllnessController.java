@@ -255,7 +255,7 @@ public class IllnessController {
 
     @ApiOperation(value = "Retrieve a list of illnesses matching the sent data", response = Illness.class)
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully found ultrasounds", responseHeaders = {
+            @ApiResponse(code = 200, message = "Successfully found illnesses", responseHeaders = {
                     @ResponseHeader(name = "total-elements", response = String.class, description = "Total number of search results"),
                     @ResponseHeader(name = "total-pages", response = String.class, description = "Total number of pages to navigate"),
                     @ResponseHeader(name = "current-page", response = String.class, description = "The page being returned, zero indexed")
@@ -268,7 +268,7 @@ public class IllnessController {
                     example = "1")
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @ApiParam(
-                    value = "The maximum number of cows to return per page.",
+                    value = "The maximum number of illnesses to return per page.",
                     example = "10")
             @RequestParam(value = "size", required = false, defaultValue = "3") int size,
             @ApiParam(
