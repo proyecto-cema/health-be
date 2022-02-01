@@ -2,6 +2,7 @@ package com.cema.health.controllers;
 
 import com.cema.health.constants.Messages;
 import com.cema.health.domain.Illness;
+import com.cema.health.domain.Note;
 import com.cema.health.entities.CemaIllness;
 import com.cema.health.exceptions.NotFoundException;
 import com.cema.health.exceptions.UnauthorizedException;
@@ -103,7 +104,7 @@ public class IllnessController {
 
         CemaIllness newIllness = illnessMapping.mapDomainToEntity(illness);
 
-        newIllness = databaseService.saveCemaIllness(newIllness, illness.getDiseaseName(), illness.getNotes());
+        newIllness = databaseService.saveCemaIllness(newIllness, illness.getDiseaseName(), illness.getNotes().stream().map(Note::getContent).collect(Collectors.toList()));
 
         Illness updatedIllness = illnessMapping.mapEntityToDomain(newIllness);
 
@@ -173,10 +174,11 @@ public class IllnessController {
 
         cemaIllness = illnessRepository.save(cemaIllness);
 
-        List<String> notes = illness.getNotes();
+        List<Note> notes = illness.getNotes();
 
         if (notes != null && !notes.isEmpty()) {
-            cemaIllness = databaseService.addNotesToIllness(cemaIllness, notes);
+            cemaIllness = databaseService.addNotesToIllness(cemaIllness, notes.stream()
+                    .map(Note::getContent).collect(Collectors.toList()));
         }
 
         Illness updatedIllness = illnessMapping.mapEntityToDomain(cemaIllness);

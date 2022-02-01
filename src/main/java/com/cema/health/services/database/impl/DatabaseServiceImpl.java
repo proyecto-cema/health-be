@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,6 +56,7 @@ public class DatabaseServiceImpl implements DatabaseService {
             CemaNote cemaNote = CemaNote.builder()
                     .content(note)
                     .illness(cemaIllness)
+                    .creationDate(new Date())
                     .build();
             cemaNotes.add(cemaNote);
         }

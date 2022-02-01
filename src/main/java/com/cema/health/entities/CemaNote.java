@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "note")
@@ -26,12 +27,16 @@ public class CemaNote {
     @ManyToOne(cascade = { CascadeType.REMOVE })
     @JoinColumn(name="illness_id")
     private CemaIllness illness;
+    
+    @Column(name = "creation_date")
+    private Date creationDate;
 
     @Override
     public String toString() {
         return "CemaNote{" +
                 "id=" + id +
                 ", content='" + content + '\'' +
+                ", creationDate=" + creationDate +
                 '}';
     }
 }

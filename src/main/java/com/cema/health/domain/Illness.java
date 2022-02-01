@@ -30,5 +30,5 @@ public class Illness {
     @NotNull
     private Date endingDate;
     @ApiModelProperty(notes = "Observation on the progression of this illness")
-    private List<String> notes;
+    private List<Note> notes;
 }
