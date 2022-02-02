@@ -99,7 +99,6 @@ public class IllnessController {
             }
         }
 
-        administrationClientService.validateEstablishment(cuig);
         bovineClientService.validateBovine(illness.getBovineTag(), illness.getEstablishmentCuig());
 
         CemaIllness newIllness = illnessMapping.mapDomainToEntity(illness);

@@ -36,24 +36,6 @@ public class AdministrationClientServiceImpl implements AdministrationClientServ
         this.authorizationService = authorizationService;
     }
 
-    @SneakyThrows
-    @Override
-    public void validateEstablishment(String cuig) {
-        String authToken = authorizationService.getUserAuthToken();
-        String searchUrl = url + PATH_VALIDATE_ESTABLISHMENT;
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(AUTHORIZATION_HEADER, authToken);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity entity = new HttpEntity("{}", httpHeaders);
-        try {
-            restTemplate.exchange(searchUrl, HttpMethod.GET, entity, Object.class, cuig);
-        } catch (RestClientResponseException httpClientErrorException) {
-            String response = httpClientErrorException.getResponseBodyAsString();
-            ErrorResponse errorResponse = mapper.readValue(response, ErrorResponse.class);
-            throw new ValidationException(errorResponse.getMessage(), httpClientErrorException);
-        }
-    }
-
     @Override
     public void sendAuditRequest(Audit audit) {
         String authToken = authorizationService.getUserAuthToken();

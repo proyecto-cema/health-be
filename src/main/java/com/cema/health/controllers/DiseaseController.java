@@ -89,7 +89,6 @@ public class DiseaseController {
         if (cemaDisease != null) {
             throw new AlreadyExistsException(String.format("Disease with name %s already exits", disease.getName()));
         }
-        administrationClientService.validateEstablishment(cuig);
 
         CemaDisease newDisease = diseaseMapping.mapDomainToEntity(disease);
 
@@ -157,7 +156,6 @@ public class DiseaseController {
         if (!authorizationService.isAdmin()) {
             cuig = authorizationService.getCurrentUserCuig();
         }
-        administrationClientService.validateEstablishment(cuig);
         CemaDisease cemaDisease = diseaseRepository.findCemaDiseaseByNameAndEstablishmentCuigIgnoreCase(name, cuig);
         if (cemaDisease == null) {
             log.info("Disease doesn't exists");
