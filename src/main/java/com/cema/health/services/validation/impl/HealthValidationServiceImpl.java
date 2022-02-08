@@ -17,6 +17,13 @@ public class HealthValidationServiceImpl implements HealthValidationService {
         LocalDateTime startingTime = illness.getStartingDate().toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
+        LocalDateTime now = LocalDateTime.now();
+        if (startingTime.isAfter(now)) {
+            throw new ValidationException(
+                    String.format("You cannot register illness for the future. Starting date %s is after current date %s",
+                            startingTime, now));
+        }
+
         LocalDateTime endingTime = illness.getEndingDate().toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
@@ -26,6 +33,7 @@ public class HealthValidationServiceImpl implements HealthValidationService {
                     String.format("Starting date %s is after ending date %s",
                             startingTime, endingTime));
         }
+
     }
 
 
@@ -67,7 +75,7 @@ public class HealthValidationServiceImpl implements HealthValidationService {
         }
     }
 
-    private boolean isBetweenDates(LocalDateTime toValidate, LocalDateTime start, LocalDateTime end){
-        return start.isBefore(toValidate) && end.isAfter(toValidate);
+    private boolean isBetweenDates(LocalDateTime toValidate, LocalDateTime start, LocalDateTime end) {
+        return (start.isBefore(toValidate) || start.equals(toValidate)) && (end.isAfter(toValidate) || end.equals(toValidate));
     }
 }

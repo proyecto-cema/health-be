@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,7 +63,10 @@ public class IllnessController {
     private final HealthValidationService healthValidationService;
     private final BovineClientService bovineClientService;
 
-    public IllnessController(IllnessRepository illnessRepository, Mapping<CemaIllness, Illness> illnessMapping, AuthorizationService authorizationService, AdministrationClientService administrationClientService, DatabaseService databaseService, HealthValidationService healthValidationService, BovineClientService bovineClientService) {
+    public IllnessController(IllnessRepository illnessRepository, Mapping<CemaIllness, Illness> illnessMapping,
+                             AuthorizationService authorizationService,
+                             AdministrationClientService administrationClientService, DatabaseService databaseService,
+                             HealthValidationService healthValidationService, BovineClientService bovineClientService) {
         this.illnessRepository = illnessRepository;
         this.illnessMapping = illnessMapping;
         this.authorizationService = authorizationService;
@@ -136,6 +141,38 @@ public class IllnessController {
         }
 
         Illness illness = illnessMapping.mapEntityToDomain(cemaIllness.get());
+
+        return new ResponseEntity<>(illness, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Retrieve illness from bovine tag data", response = Illness.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully found illness"),
+            @ApiResponse(code = 404, message = "Illness not found")
+    })
+    @GetMapping(value = BASE_URL + "bovine/{tag}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Illness> lookUpIllnessByTag(
+            @ApiParam(
+                    value = "The tag of the ill bovine you are looking for.",
+                    example = "123")
+            @PathVariable("tag") String tag,
+            @ApiParam(
+                    value = "The cuig of the establishment of the batch. If the user is not admin will be ignored.",
+                    example = "312")
+            @RequestParam(value = "cuig", required = false) String cuig) {
+
+        log.info("Request for illness with bovine tag {}", tag);
+
+        if (!authorizationService.isAdmin() || !StringUtils.hasLength(cuig)) {
+            cuig = authorizationService.getCurrentUserCuig();
+        }
+
+        CemaIllness cemaIllness = illnessRepository.findIllBovine(tag, cuig);
+        if (cemaIllness == null) {
+            throw new NotFoundException(String.format("Bovine %s is not ill", tag));
+        }
+
+        Illness illness = illnessMapping.mapEntityToDomain(cemaIllness);
 
         return new ResponseEntity<>(illness, HttpStatus.OK);
     }

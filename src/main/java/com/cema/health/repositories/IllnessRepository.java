@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,5 +21,8 @@ public interface IllnessRepository extends JpaRepository<CemaIllness, UUID> {
 
     @Query("select ci from CemaIllness ci where ci.disease.name = ?1")
     List<CemaIllness> findCemaIllnessByDiseaseName(String diseaseName);
+
+    @Query(value = "select * from illness il where il.bovine_tag=?1 AND il.establishment_cuig=?2 AND (il.ending_date IS NULL OR il.ending_date > now())", nativeQuery = true)
+    CemaIllness findIllBovine(String tag, String cuig);
 
 }

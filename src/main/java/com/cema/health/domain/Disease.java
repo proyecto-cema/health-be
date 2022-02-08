@@ -1,13 +1,17 @@
 package com.cema.health.domain;
 
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Disease {
 
     @ApiModelProperty(notes = "The name of the disease", example = "Aftosa")
