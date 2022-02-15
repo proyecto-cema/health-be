@@ -1,0 +1,80 @@
+info:
+  app:
+    name: health-be
+
+server:
+  port: 30028
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+    com:
+      cema: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+app:
+  region: AR
+
+spring:
+  profiles:
+    active: local
+  application:
+    name: health-be
+  jpa:
+    show-sql: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://localhost:5432/health
+    username: health
+    password: ry9%FqK2az9SR&um
+back-end:
+  users:
+    url: "http://localhost:30023/v1/"
+  bovine:
+    url: "http://localhost:30024/v1/"
+  activity:
+    url: "http://localhost:30026/v1/"
+  administration:
+    url: "http://localhost:30025/v1/"
+
+---
+spring:
+  datasource:
+    url: jdbc:postgresql://192.168.100.5:5432/health
+  config:
+    activate:
+      on-profile: qa
+back-end:
+  users:
+    url: "http://192.168.100.5:30023/v1/"
+  bovine:
+    url: "http://192.168.100.5:30024/v1/"
+  activity:
+    url: "http://192.168.100.5:30026/v1/"
+  administration:
+    url: "http://192.168.100.5:30025/v1/"
+
+---
+spring:
+  datasource:
+    url: jdbc:postgresql://192.168.100.6:5432/health
+  config:
+    activate:
+      on-profile: prod
+back-end:
+  users:
+    url: "http://192.168.100.6:30023/v1/"
+  bovine:
+    url: "http://192.168.100.6:30024/v1/"
+  activity:
+    url: "http://192.168.100.6:30026/v1/"
+  administration:
+    url: "http://192.168.100.6:30025/v1/"
