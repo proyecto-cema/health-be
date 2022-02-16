@@ -45,6 +45,13 @@ back-end:
   administration:
     url: "http://localhost:30025/v1/"
 
+notification:
+  text:
+    sid: "AC72e74858920564e9d67de6bf10ee548a"
+    token: "11facae68ebc31db00bfc3dcb0c730e1"
+    sender: "+19377313733"
+    country-code: "+54"
+
 ---
 spring:
   datasource:

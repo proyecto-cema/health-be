@@ -53,6 +53,9 @@ public class CemaIllness {
     @Column(name = "establishment_cuig")
     private String establishmentCuig;
 
+    @Column(name = "worker_username")
+    private String workerUsername;
+
     @ManyToOne(cascade = { CascadeType.DETACH })
     @JoinColumn(name = "disease_id")
     private CemaDisease disease;

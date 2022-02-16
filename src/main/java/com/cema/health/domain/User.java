@@ -2,16 +2,16 @@ package com.cema.health.domain;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import java.util.Date;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -29,6 +29,8 @@ public class User {
     @NotEmpty(message = "Last name is required")
     private String lastName;
     @ApiModelProperty(notes = "The phone number of this user", example = "3541330188")
+    @NotEmpty(message = "Phone number is required")
+    @Pattern(regexp="(^$|[0-9]{10})", message = "Incorrect phone number format")
     private String phone;
     @ApiModelProperty(notes = "The email address of this user", example = "merlinsn@gmail.com")
     private String email;
@@ -38,4 +40,17 @@ public class User {
     private String role;
     @ApiModelProperty(notes = "When was this user created", hidden = true)
     private Date creationDate;
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userName='" + userName + '\'' +
+                ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", role='" + role + '\'' +
+                ", creationDate=" + creationDate +
+                '}';
+    }
 }

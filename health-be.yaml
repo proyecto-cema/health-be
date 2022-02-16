@@ -33,6 +33,8 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: $ENV
+            - name: TZ
+              value: America/Buenos_Aires
       imagePullSecrets:
         - name: regcred
 ---

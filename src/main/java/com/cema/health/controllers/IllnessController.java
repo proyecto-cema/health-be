@@ -12,6 +12,7 @@ import com.cema.health.services.authorization.AuthorizationService;
 import com.cema.health.services.client.administration.AdministrationClientService;
 import com.cema.health.services.client.bovine.BovineClientService;
 import com.cema.health.services.database.DatabaseService;
+import com.cema.health.services.notification.NotificationService;
 import com.cema.health.services.validation.HealthValidationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -40,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -62,11 +62,13 @@ public class IllnessController {
     private final DatabaseService databaseService;
     private final HealthValidationService healthValidationService;
     private final BovineClientService bovineClientService;
+    private final NotificationService notificationService;
 
     public IllnessController(IllnessRepository illnessRepository, Mapping<CemaIllness, Illness> illnessMapping,
                              AuthorizationService authorizationService,
                              AdministrationClientService administrationClientService, DatabaseService databaseService,
-                             HealthValidationService healthValidationService, BovineClientService bovineClientService) {
+                             HealthValidationService healthValidationService, BovineClientService bovineClientService,
+                             NotificationService notificationService) {
         this.illnessRepository = illnessRepository;
         this.illnessMapping = illnessMapping;
         this.authorizationService = authorizationService;
@@ -74,6 +76,18 @@ public class IllnessController {
         this.databaseService = databaseService;
         this.healthValidationService = healthValidationService;
         this.bovineClientService = bovineClientService;
+        this.notificationService = notificationService;
+    }
+
+    @ApiOperation(value = "Launch notifications")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Notifications Sent")
+    })
+    @GetMapping(value = BASE_URL + "/notifications/send", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> sendNotifications() {
+        notificationService.notifyAllUsers();
+
+        return ResponseEntity.ok().build();
     }
 
     @ApiOperation(value = "Register a new illness to the database")

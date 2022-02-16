@@ -1,6 +1,7 @@
 package com.cema.health.services.client.users.impl;
 
 import com.cema.health.domain.ErrorResponse;
+import com.cema.health.domain.User;
 import com.cema.health.exceptions.ValidationException;
 import com.cema.health.services.authorization.AuthorizationService;
 import com.cema.health.services.client.users.UsersClientService;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 public class UsersClientServiceImpl implements UsersClientService {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String PATH_VALIDATE_USER = "users/validate/{username}";
+    private static final String PATH_USER = "users/{username}";
 
     private final RestTemplate restTemplate;
     private final String url;
@@ -43,6 +46,25 @@ public class UsersClientServiceImpl implements UsersClientService {
         HttpEntity entity = new HttpEntity("{}", httpHeaders);
         try {
             restTemplate.exchange(searchUrl, HttpMethod.GET, entity, Object.class, userName);
+        } catch (RestClientResponseException httpClientErrorException) {
+            String response = httpClientErrorException.getResponseBodyAsString();
+            ErrorResponse errorResponse = mapper.readValue(response, ErrorResponse.class);
+            throw new ValidationException(errorResponse.getMessage(), httpClientErrorException);
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public User getUser(String userName) {
+        String authToken = authorizationService.getUserAuthToken();
+        String searchUrl = url + PATH_USER;
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(AUTHORIZATION_HEADER, authToken);
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity entity = new HttpEntity("{}", httpHeaders);
+        try {
+            ResponseEntity<User> response = restTemplate.exchange(searchUrl, HttpMethod.GET, entity, User.class, userName);
+            return response.getBody();
         } catch (RestClientResponseException httpClientErrorException) {
             String response = httpClientErrorException.getResponseBodyAsString();
             ErrorResponse errorResponse = mapper.readValue(response, ErrorResponse.class);

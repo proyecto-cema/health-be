@@ -110,6 +110,11 @@
             <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>8.26.0</version>
+        </dependency>
     </dependencies>
 
     <build>
