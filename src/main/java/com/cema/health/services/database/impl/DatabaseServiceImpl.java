@@ -1,5 +1,6 @@
 package com.cema.health.services.database.impl;
 
+import com.cema.health.domain.Note;
 import com.cema.health.entities.CemaDisease;
 import com.cema.health.entities.CemaIllness;
 import com.cema.health.entities.CemaNote;
@@ -37,7 +38,7 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public CemaIllness saveCemaIllness(CemaIllness cemaIllness, String diseaseName, List<String> notes) {
+    public CemaIllness saveCemaIllness(CemaIllness cemaIllness, String diseaseName, List<String> stringNotes) {
         CemaDisease cemaDisease = diseaseRepository.findCemaDiseaseByNameAndEstablishmentCuigIgnoreCase(diseaseName, cemaIllness.getEstablishmentCuig());
         if (cemaDisease == null) {
             throw new NotFoundException(String.format("Disease with name %s doesn't exists for cuig %s", diseaseName, cemaIllness.getEstablishmentCuig()));
@@ -46,22 +47,24 @@ public class DatabaseServiceImpl implements DatabaseService {
 
         cemaIllness = illnessRepository.save(cemaIllness);
 
+        List<Note> notes = stringNotes.stream().map(Note::new).collect(Collectors.toList());
+
         return addNotesToIllness(cemaIllness, notes);
     }
 
     @Override
-    public CemaIllness addNotesToIllness(CemaIllness cemaIllness, List<String> notes) {
-        List<CemaNote> cemaNotes = new ArrayList<>();
-        for (String note : notes) {
+    public CemaIllness addNotesToIllness(CemaIllness cemaIllness, List<Note> notes) {
+        List<CemaNote> newCemaNotes = new ArrayList<>();
+        for (Note note : notes.stream().filter(note -> note.getCreationDate() == null).collect(Collectors.toList())) {
             CemaNote cemaNote = CemaNote.builder()
-                    .content(note)
+                    .content(note.getContent())
                     .illness(cemaIllness)
                     .creationDate(new Date())
                     .build();
-            cemaNotes.add(cemaNote);
+            newCemaNotes.add(cemaNote);
         }
-        noteRepository.saveAll(cemaNotes);
-        cemaIllness.getCemaNotes().addAll(cemaNotes);
+        noteRepository.saveAll(newCemaNotes);
+        cemaIllness.getCemaNotes().addAll(newCemaNotes);
         return cemaIllness;
     }
 

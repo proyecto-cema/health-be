@@ -23,7 +23,7 @@ public interface IllnessRepository extends JpaRepository<CemaIllness, UUID> {
     List<CemaIllness> findCemaIllnessByDiseaseName(String diseaseName);
 
     @Query(value = "select * from illness il where il.bovine_tag=?1 AND il.establishment_cuig=?2 AND (il.ending_date IS NULL OR il.ending_date > now())", nativeQuery = true)
-    CemaIllness findIllBovine(String tag, String cuig);
+    List<CemaIllness> findIllBovine(String tag, String cuig);
 
     @Query(value = "SELECT * FROM illness WHERE cast(ending_date as date) = current_date", nativeQuery = true)
     List<CemaIllness> findAllIllnessEndingToday();
