@@ -31,11 +31,11 @@ public class Illness {
     private String establishmentCuig;
     @ApiModelProperty(notes = "The date when this sickness was detected", example = "2021-02-12 00:14:00")
     @NotNull
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone = "America/Buenos_Aires")
     private Date startingDate;
     @ApiModelProperty(notes = "The date when this sickness is estimated to end", example = "2021-03-12 00:14:00")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone = "America/Buenos_Aires")
     @NotNull
     private Date endingDate;
     @ApiModelProperty(notes = "Observation on the progression of this illness")

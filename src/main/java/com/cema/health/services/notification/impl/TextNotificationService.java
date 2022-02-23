@@ -21,23 +21,26 @@ import java.util.stream.Collectors;
 public class TextNotificationService implements NotificationService {
 
     private final String accountSid;
-    private final String authToken;
+    private final String authSecret;
+    private final String authUser;
     private final String sender;
     private final String countryCode;
     private final IllnessRepository illnessRepository;
     private final UsersClientService usersClientService;
 
     public TextNotificationService(@Value("${notification.text.sid}") String accountSid,
-                                   @Value("${notification.text.token}") String authToken,
+                                   @Value("${notification.text.secret}") String authSecret,
+                                   @Value("${notification.text.user}") String authUser,
                                    @Value("${notification.text.sender}") String sender,
                                    @Value("${notification.text.country-code}") String countryCode,
                                    IllnessRepository illnessRepository, UsersClientService usersClientService) {
         this.accountSid = accountSid;
-        this.authToken = authToken;
+        this.authSecret = authSecret;
         this.sender = sender;
         this.countryCode = countryCode;
         this.illnessRepository = illnessRepository;
         this.usersClientService = usersClientService;
+        this.authUser = authUser;
     }
 
     //@Scheduled(cron = "0 15 10 * * ?", zone = "America/Buenos_Aires")
@@ -66,7 +69,7 @@ public class TextNotificationService implements NotificationService {
 
     @Override
     public void sendNotification(String body, String destination) {
-        Twilio.init(accountSid, authToken);
+        Twilio.init(authUser, authSecret, accountSid);
         if (!destination.startsWith(countryCode)) {
             destination = countryCode + destination;
         }
