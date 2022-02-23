@@ -12,6 +12,7 @@ import com.cema.health.services.authorization.AuthorizationService;
 import com.cema.health.services.client.administration.AdministrationClientService;
 import com.cema.health.services.client.bovine.BovineClientService;
 import com.cema.health.services.database.DatabaseService;
+import com.cema.health.services.notification.NotificationService;
 import com.cema.health.services.validation.HealthValidationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,6 +42,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -62,11 +68,13 @@ public class IllnessController {
     private final DatabaseService databaseService;
     private final HealthValidationService healthValidationService;
     private final BovineClientService bovineClientService;
+    private final NotificationService notificationService;
 
     public IllnessController(IllnessRepository illnessRepository, Mapping<CemaIllness, Illness> illnessMapping,
                              AuthorizationService authorizationService,
                              AdministrationClientService administrationClientService, DatabaseService databaseService,
-                             HealthValidationService healthValidationService, BovineClientService bovineClientService) {
+                             HealthValidationService healthValidationService, BovineClientService bovineClientService,
+                             NotificationService notificationService) {
         this.illnessRepository = illnessRepository;
         this.illnessMapping = illnessMapping;
         this.authorizationService = authorizationService;
@@ -74,6 +82,18 @@ public class IllnessController {
         this.databaseService = databaseService;
         this.healthValidationService = healthValidationService;
         this.bovineClientService = bovineClientService;
+        this.notificationService = notificationService;
+    }
+
+    @ApiOperation(value = "Launch notifications")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Notifications Sent")
+    })
+    @GetMapping(value = BASE_URL + "/notifications/send", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> sendNotifications() {
+        notificationService.notifyAllUsers();
+
+        return ResponseEntity.ok().build();
     }
 
     @ApiOperation(value = "Register a new illness to the database")
@@ -167,12 +187,12 @@ public class IllnessController {
             cuig = authorizationService.getCurrentUserCuig();
         }
 
-        CemaIllness cemaIllness = illnessRepository.findIllBovine(tag, cuig);
-        if (cemaIllness == null) {
+        List<CemaIllness> cemaIllness = illnessRepository.findIllBovine(tag, cuig);
+        if (cemaIllness == null || cemaIllness.isEmpty()) {
             throw new NotFoundException(String.format("Bovine %s is not ill", tag));
         }
 
-        Illness illness = illnessMapping.mapEntityToDomain(cemaIllness);
+        Illness illness = illnessMapping.mapEntityToDomain(cemaIllness.get(0));
 
         return new ResponseEntity<>(illness, HttpStatus.OK);
     }
@@ -213,8 +233,7 @@ public class IllnessController {
         List<Note> notes = illness.getNotes();
 
         if (notes != null && !notes.isEmpty()) {
-            cemaIllness = databaseService.addNotesToIllness(cemaIllness, notes.stream()
-                    .map(Note::getContent).collect(Collectors.toList()));
+            cemaIllness = databaseService.addNotesToIllness(cemaIllness, notes);
         }
 
         Illness updatedIllness = illnessMapping.mapEntityToDomain(cemaIllness);
@@ -318,6 +337,65 @@ public class IllnessController {
         }
 
         CemaIllness cemaIllness = illnessMapping.mapDomainToEntity(illness);
+
+        Page<CemaIllness> cemaIllnessPage = databaseService.searchIllnesses(cemaIllness, page, size);
+
+        List<CemaIllness> cemaIllnesses = cemaIllnessPage.getContent();
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set("total-elements", String.valueOf(cemaIllnessPage.getTotalElements()));
+        responseHeaders.set("total-pages", String.valueOf(cemaIllnessPage.getTotalPages()));
+        responseHeaders.set("current-page", String.valueOf(cemaIllnessPage.getNumber()));
+
+        List<Illness> illnesses = cemaIllnesses.stream().map(illnessMapping::mapEntityToDomain).collect(Collectors.toList());
+
+        return ResponseEntity.ok().headers(responseHeaders).body(illnesses);
+    }
+
+    @ApiOperation(value = "Retrieve a list of illnesses matching the sent data", response = Illness.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully found illnesses", responseHeaders = {
+                    @ResponseHeader(name = "total-elements", response = String.class, description = "Total number of search results"),
+                    @ResponseHeader(name = "total-pages", response = String.class, description = "Total number of pages to navigate"),
+                    @ResponseHeader(name = "current-page", response = String.class, description = "The page being returned, zero indexed")
+            })
+    })
+    @GetMapping(value = BASE_URL + "search", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<List<Illness>> getIllnesses(
+            @ApiParam(
+                    value = "The page you want to retrieve.",
+                    example = "1")
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+            @ApiParam(
+                    value = "The maximum number of illnesses to return per page.",
+                    example = "10")
+            @RequestParam(value = "size", required = false, defaultValue = "3") int size,
+            @ApiParam(
+                    value = "The tag of the sick bovine you are looking for", example = "54654")
+            @RequestParam(value = "tag", required = false) String tag,
+            @ApiParam(
+                    value = "The endingDate of the illness you are searching", example = "2022-01-25 00:14:00")
+            @RequestParam(value = "endingDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date endingDate,
+            @ApiParam(
+                    value = "The startingDate of the illness you are searching", example = "2022-01-25 00:14:00")
+            @RequestParam(value = "startingDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date startingDate,
+            @ApiParam(
+                    value = "The cuig of the sick bovine you are looking for", example = "321")
+            @RequestParam(value = "cuig", required = false) String cuig,
+            @ApiParam(
+                    value = "The worker of the sick bovine you are looking for", example = "merlin")
+            @RequestParam(value = "worker", required = false) String worker) {
+
+        if (!authorizationService.isAdmin()) {
+            cuig = authorizationService.getCurrentUserCuig();
+        }
+
+        CemaIllness cemaIllness = CemaIllness.builder()
+                .bovineTag(tag)
+                .endingDate(endingDate)
+                .startingDate(startingDate)
+                .establishmentCuig(cuig)
+                .workerUsername(worker)
+                .build();
 
         Page<CemaIllness> cemaIllnessPage = databaseService.searchIllnesses(cemaIllness, page, size);
 

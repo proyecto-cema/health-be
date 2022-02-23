@@ -5,6 +5,7 @@ import com.cema.health.domain.Note;
 import com.cema.health.entities.CemaIllness;
 import com.cema.health.entities.CemaNote;
 import com.cema.health.mapping.Mapping;
+import com.cema.health.services.authorization.AuthorizationService;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -14,6 +15,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class IllnessMappingImpl implements Mapping<CemaIllness, Illness> {
+
+    private final AuthorizationService authorizationService;
+
+    public IllnessMappingImpl(AuthorizationService authorizationService) {
+        this.authorizationService = authorizationService;
+    }
 
     private Note mapCemaNote(CemaNote cemaNote){
         return Note.builder().content(cemaNote.getContent()).creationDate(cemaNote.getCreationDate()).build();
@@ -39,11 +46,13 @@ public class IllnessMappingImpl implements Mapping<CemaIllness, Illness> {
 
     @Override
     public CemaIllness mapDomainToEntity(Illness illness) {
+        String workerUsername = authorizationService.getCurrentUserName();
         return CemaIllness.builder()
                 .bovineTag(illness.getBovineTag())
                 .endingDate(illness.getEndingDate())
                 .startingDate(illness.getStartingDate())
                 .establishmentCuig(illness.getEstablishmentCuig())
+                .workerUsername(workerUsername)
                 .build();
     }
 

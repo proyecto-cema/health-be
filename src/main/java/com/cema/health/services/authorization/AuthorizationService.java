@@ -2,6 +2,8 @@ package com.cema.health.services.authorization;
 
 public interface AuthorizationService {
 
+    String getCurrentUserName();
+
     String getUserAuthToken();
 
     String getCurrentUserCuig();

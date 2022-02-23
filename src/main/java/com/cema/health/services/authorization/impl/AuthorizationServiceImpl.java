@@ -11,6 +11,13 @@ import org.springframework.stereotype.Service;
 public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
+    public String getCurrentUserName(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CemaUserDetails cemaUserDetails = (CemaUserDetails) authentication.getPrincipal();
+        return cemaUserDetails.getUsername();
+    }
+
+    @Override
     public String getUserAuthToken() {
         CemaUserDetails cemaUserDetails = (CemaUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return cemaUserDetails.getAuthToken();
