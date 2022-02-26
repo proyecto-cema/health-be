@@ -48,7 +48,8 @@ back-end:
 notification:
   text:
     sid: "AC72e74858920564e9d67de6bf10ee548a"
-    token: "11facae68ebc31db00bfc3dcb0c730e1"
+    secret: "WVDoV7B9tw3qS7MSbvjDjNzu2tPOCG7J"
+    user: "SK917303dd8b50e8ba91e820818594e191"
     sender: "+19377313733"
     country-code: "+54"
 

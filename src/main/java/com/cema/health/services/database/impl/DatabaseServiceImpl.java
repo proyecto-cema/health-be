@@ -74,7 +74,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                 .matching()
                 .withIgnoreCase()
                 .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-        Pageable paging = PageRequest.of(page, size, Sort.by("startingDate"));
+        Pageable paging = PageRequest.of(page, size, Sort.by("startingDate").descending());
         return illnessRepository.findAll(Example.of(illness, caseInsensitiveExampleMatcher), paging);
     }
 }

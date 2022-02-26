@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -228,6 +229,13 @@ public class IllnessController {
 
         cemaIllness = illnessMapping.updateDomainWithEntity(illness, cemaIllness);
 
+        List<CemaIllness> illnesses = illnessRepository.findCemaIllnessByDiseaseNameAndBovineTagAndEstablishmentCuig(cemaIllness.getDisease().getName(), cemaIllness.getBovineTag(), cuig);
+        if (!illnesses.isEmpty()) {
+            for (CemaIllness existingCemaIllness : illnesses.stream().filter(cemaIllness1 -> cemaIllness1.getId() != id).collect(Collectors.toList())) {
+                healthValidationService.validateIllnessDate(existingCemaIllness, illnessMapping.mapEntityToDomain(cemaIllness));
+            }
+        }
+
         cemaIllness = illnessRepository.save(cemaIllness);
 
         List<Note> notes = illness.getNotes();
@@ -290,7 +298,7 @@ public class IllnessController {
             @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
 
         String cuig = authorizationService.getCurrentUserCuig();
-        Pageable paging = PageRequest.of(page, size);
+        Pageable paging = PageRequest.of(page, size, Sort.by("startingDate").descending());
 
         Page<CemaIllness> cemaIllnessPage;
         if (authorizationService.isAdmin()) {

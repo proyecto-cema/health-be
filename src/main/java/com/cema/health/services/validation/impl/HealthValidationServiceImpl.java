@@ -6,6 +6,7 @@ import com.cema.health.exceptions.ValidationException;
 import com.cema.health.services.validation.HealthValidationService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -40,42 +41,40 @@ public class HealthValidationServiceImpl implements HealthValidationService {
     @Override
     public void validateIllnessDate(CemaIllness cemaIllness, Illness illness) {
 
-        LocalDateTime existingStartingTime = cemaIllness.getStartingDate().toInstant()
+        LocalDate existingStartingTime = cemaIllness.getStartingDate().toInstant()
                 .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
-        LocalDateTime existingEndingTime = cemaIllness.getEndingDate().toInstant()
+                .toLocalDate();
+        LocalDate existingEndingTime = cemaIllness.getEndingDate().toInstant()
                 .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+                .toLocalDate();
 
-        LocalDateTime newStartingTime = illness.getStartingDate().toInstant()
+        LocalDate newStartingTime = illness.getStartingDate().toInstant()
                 .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+                .toLocalDate();
 
-        LocalDateTime newEndingTime = illness.getEndingDate().toInstant()
+        LocalDate newEndingTime = illness.getEndingDate().toInstant()
                 .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+                .toLocalDate();
 
         String diseaseName = illness.getDiseaseName();
         String bovineTag = illness.getBovineTag();
-        String startingTimeStr = existingStartingTime.toString();
-        String endingTimeStr = existingEndingTime.toString();
 
-        if (isBetweenDates(newStartingTime, existingStartingTime, existingEndingTime)) {
-            String incorrectTime = newStartingTime.toString();
-            throw new ValidationException(
-                    String.format("The bovine %s is already sick with %s from %s to %s. Your starting time %s overlaps",
-                            bovineTag, diseaseName, startingTimeStr, endingTimeStr, incorrectTime));
-        }
+        boolean overlaps;
 
-        if (isBetweenDates(newEndingTime, existingStartingTime, existingEndingTime)) {
-            String incorrectTime = newEndingTime.toString();
+        overlaps = isBetweenDates(newStartingTime, existingStartingTime, existingEndingTime)
+                || isBetweenDates(newEndingTime, existingStartingTime, existingEndingTime)
+                || isBetweenDates(existingStartingTime, newStartingTime, newEndingTime)
+                || isBetweenDates(existingEndingTime, newStartingTime, newEndingTime);
+
+
+        if (overlaps) {
             throw new ValidationException(
-                    String.format("The bovine %s is already sick with %s from %s to %s. Your ending time %s overlaps",
-                            bovineTag, diseaseName, startingTimeStr, endingTimeStr, incorrectTime));
+                    String.format("The bovine %s is already sick with %s from %s to %s. The new period from %s to %s overlaps.",
+                            bovineTag, diseaseName, existingStartingTime, existingEndingTime, newStartingTime, newEndingTime));
         }
     }
 
-    private boolean isBetweenDates(LocalDateTime toValidate, LocalDateTime start, LocalDateTime end) {
+    private boolean isBetweenDates(LocalDate toValidate, LocalDate start, LocalDate end) {
         return (start.isBefore(toValidate) || start.equals(toValidate)) && (end.isAfter(toValidate) || end.equals(toValidate));
     }
 }

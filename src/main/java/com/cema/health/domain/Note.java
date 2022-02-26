@@ -19,7 +19,7 @@ public class Note {
     private String content;
     @ApiModelProperty(notes = "When this note was created", example = "2021-03-12 00:14:00")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "America/Buenos_Aires")
     private Date creationDate;
 
     public Note(String content) {

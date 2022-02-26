@@ -61,7 +61,7 @@ public class DiseaseController {
     public DiseaseController(DiseaseRepository diseaseRepository, Mapping<CemaDisease, Disease> diseaseMapping,
                              AuthorizationService authorizationService,
                              AdministrationClientService administrationClientService,
-                             IllnessRepository illnessRepository) {
+                                                                                                                                                                                                   IllnessRepository illnessRepository) {
         this.diseaseRepository = diseaseRepository;
         this.diseaseMapping = diseaseMapping;
         this.authorizationService = authorizationService;
